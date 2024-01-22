@@ -1,9 +1,10 @@
-library flutter_recaptcha_v2;
+library flutter_recaptcha_v2_compat_compat;
 
-import 'package:webview_flutter/webview_flutter.dart';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class RecaptchaV2 extends StatefulWidget {
   final String apiKey;
@@ -11,30 +12,28 @@ class RecaptchaV2 extends StatefulWidget {
   final String pluginURL = "https://recaptcha-flutter-plugin.firebaseapp.com/";
   final RecaptchaV2Controller controller;
 
-  final ValueChanged<bool> onVerifiedSuccessfully;
-  final ValueChanged<String> onVerifiedError;
+  final ValueChanged<bool>? onVerifiedSuccessfully;
+  final ValueChanged<String>? onVerifiedError;
 
   RecaptchaV2({
-    this.apiKey,
-    this.apiSecret,
-    RecaptchaV2Controller controller,
+    required this.apiKey,
+    required this.apiSecret,
+    required this.controller,
     this.onVerifiedSuccessfully,
     this.onVerifiedError,
-  })  : controller = controller ?? RecaptchaV2Controller(),
-        assert(apiKey != null, "Google ReCaptcha API KEY is missing."),
-        assert(apiSecret != null, "Google ReCaptcha API SECRET is missing.");
+  });
 
   @override
   State<StatefulWidget> createState() => _RecaptchaV2State();
 }
 
 class _RecaptchaV2State extends State<RecaptchaV2> {
-  RecaptchaV2Controller controller;
-  WebViewController webViewController;
+  late RecaptchaV2Controller controller;
+  late WebViewController webViewController;
 
   void verifyToken(String token) async {
     String url = "https://www.google.com/recaptcha/api/siteverify";
-    http.Response response = await http.post(url, body: {
+    http.Response response = await http.post(Uri.parse(url), body: {
       "secret": widget.apiSecret,
       "response": token,
     });
@@ -45,10 +44,10 @@ class _RecaptchaV2State extends State<RecaptchaV2> {
     if (response.statusCode == 200) {
       dynamic json = jsonDecode(response.body);
       if (json['success']) {
-        widget.onVerifiedSuccessfully(true);
+        widget.onVerifiedSuccessfully?.call(true);
       } else {
-        widget.onVerifiedSuccessfully(false);
-        widget.onVerifiedError(json['error-codes'].toString());
+        widget.onVerifiedSuccessfully?.call(false);
+        widget.onVerifiedError?.call(json['error-codes'].toString());
       }
     }
 
@@ -58,10 +57,8 @@ class _RecaptchaV2State extends State<RecaptchaV2> {
 
   void onListen() {
     if (controller.visible) {
-      if (webViewController != null) {
-        webViewController.clearCache();
-        webViewController.reload();
-      }
+      webViewController.clearCache();
+      webViewController.reload();
     }
     setState(() {
       controller.visible;
@@ -73,6 +70,20 @@ class _RecaptchaV2State extends State<RecaptchaV2> {
     controller = widget.controller;
     controller.addListener(onListen);
     super.initState();
+    webViewController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(Colors.white)
+      ..addJavaScriptChannel(
+        'RecaptchaFlutterChannel',
+        onMessageReceived: (JavaScriptMessage receiver) {
+          String _token = receiver.message;
+          if (_token.contains("verify")) {
+            _token = _token.substring(7);
+          }
+          verifyToken(_token);
+        },
+      )
+      ..loadRequest(Uri.parse("${widget.pluginURL}?api_key=${widget.apiKey}"));
   }
 
   @override
@@ -97,27 +108,7 @@ class _RecaptchaV2State extends State<RecaptchaV2> {
     return controller.visible
         ? Stack(
             children: <Widget>[
-              WebView(
-                initialUrl: "${widget.pluginURL}?api_key=${widget.apiKey}",
-                javascriptMode: JavascriptMode.unrestricted,
-                javascriptChannels: <JavascriptChannel>[
-                  JavascriptChannel(
-                    name: 'RecaptchaFlutterChannel',
-                    onMessageReceived: (JavascriptMessage receiver) {
-                      // print(receiver.message);
-                      String _token = receiver.message;
-                      if (_token.contains("verify")) {
-                        _token = _token.substring(7);
-                      }
-                      // print(_token);
-                      verifyToken(_token);
-                    },
-                  ),
-                ].toSet(),
-                onWebViewCreated: (_controller) {
-                  webViewController = _controller;
-                },
-              ),
+              WebViewWidget(controller: webViewController),
               Align(
                 alignment: Alignment.bottomCenter,
                 child: SizedBox(
@@ -126,7 +117,7 @@ class _RecaptchaV2State extends State<RecaptchaV2> {
                     mainAxisSize: MainAxisSize.max,
                     children: <Widget>[
                       Expanded(
-                        child: RaisedButton(
+                        child: ElevatedButton(
                           child: Text("CANCEL RECAPTCHA"),
                           onPressed: () {
                             controller.hide();
