@@ -1,6 +1,6 @@
 // import 'package:flutter_test/flutter_test.dart';
 
-/* import 'package:flutter_recaptcha_v2/flutter_recaptcha_v2.dart';
+/* import 'package:flutter_recaptcha_v2_compat/flutter_recaptcha_v2_compat.dart';
 
 void main() {
   test('adds one to input values', () {

@@ -20,7 +20,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_recaptcha_v2: 
+  flutter_recaptcha_v2_compat: 
     path: ../
 
 dev_dependencies:

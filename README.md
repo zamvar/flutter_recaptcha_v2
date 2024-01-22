@@ -1,4 +1,4 @@
-# flutter_recaptcha_v2
+# flutter_recaptcha_v2_compat
 
 A Flutter plugin for Google ReCaptcha V2.
 
