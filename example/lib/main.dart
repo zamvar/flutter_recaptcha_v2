@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_recaptcha_v2_compat/flutter_recaptcha_v2.dart';
+import 'package:flutter_recaptcha_v2_compat/flutter_recaptcha_v2_compat.dart';
 
 void main() => runApp(MyApp());
 
