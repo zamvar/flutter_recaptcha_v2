@@ -9,7 +9,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 class RecaptchaV2 extends StatefulWidget {
   final String apiKey;
   final String apiSecret;
-  final String pluginURL = "https://recaptcha-flutter-plugin.firebaseapp.com/";
+  final String pluginURL;
   final RecaptchaV2Controller controller;
 
   final ValueChanged<bool>? onVerifiedSuccessfully;
@@ -19,6 +19,7 @@ class RecaptchaV2 extends StatefulWidget {
     required this.apiKey,
     required this.apiSecret,
     required this.controller,
+    required this.pluginURL
     this.onVerifiedSuccessfully,
     this.onVerifiedError,
   });
