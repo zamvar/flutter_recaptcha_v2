@@ -19,7 +19,7 @@ class RecaptchaV2 extends StatefulWidget {
     required this.apiKey,
     required this.apiSecret,
     required this.controller,
-    required this.pluginURL
+    required this.pluginURL,
     this.onVerifiedSuccessfully,
     this.onVerifiedError,
   });
